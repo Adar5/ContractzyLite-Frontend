@@ -1,59 +1,97 @@
-# ContractzyUi
+# ContractzyLite 📝
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.24.
+ContractzyLite is a full-stack, AI-powered contract management platform designed to streamline the lifecycle of business agreements. It provides a secure environment to draft, digitally sign, analyze, and vault contracts using enterprise-grade cloud infrastructure and ultra-high-speed AI inference.
 
-## Development server
+## 🚀 Key Features
 
-To start a local development server, run:
+* **AI-Powered Risk Analysis:** Select any clause within a contract and instantly generate legal risk assessments and remediated text using Groq's high-speed `gpt-oss-20b` inference engine.
+* **Digital Signatures & Document Generation:** Type signatures that are dynamically stamped onto compliant PDFs generated on-the-fly using `pdf-lib`.
+* **Enterprise Cloud Vaulting:** Automatically archives executed contracts into Oracle Cloud Infrastructure (OCI) Object Storage for secure, immutable record-keeping.
+* **Dynamic Analytics Dashboard:** Real-time financial metrics, status tracking, and a live activity feed that calculates contract expirations and pending actions directly from the database.
+* **Role-Based Workspaces:** Secure authentication flow seamlessly managing "Draft", "Sent", "Signed", and "Expired" states.
 
+---
+
+## 🏗 Architecture & Tech Stack
+
+This project utilizes a modern, decoupled architecture separating the client interface from the API services. 
+
+### Frontend (Client)
+* **Framework:** Angular 
+* **Styling:** Tailwind CSS
+* **Architecture:** Component-driven design with reactive form handling and route guards.
+
+### Backend (API)
+* **Runtime:** Node.js with Express.js
+* **Database:** MySQL (Persistent storage for users, contracts, and version control)
+* **AI Engine:** Groq API (LLM Routing for sub-second text analysis)
+* **Infrastructure:** Hosted on Oracle VM (Ubuntu)
+* **Cloud Storage:** Oracle Cloud Infrastructure (OCI) Object Storage
+* **Process Manager:** PM2
+
+*(Note: The backend API repository is maintained separately. [https://github.com/Adar5/ContractzyLite-Backend.git])*
+
+---
+
+## 🛠 Getting Started (Local Development)
+
+### Prerequisites
+* Node.js (v18+)
+* Angular CLI (`npm install -g @angular/cli`)
+* MySQL Server
+* Groq API Key
+* Oracle Cloud Account (for OCI Vaulting)
+
+### 1. Database Setup
+Create a new MySQL database named `contractzy` and create `users`, `contracts`, and `contract_versions` tables.
+
+### 2. Backend API Setup
+Clone the backend repository and install dependencies:
+```bash
+git clone https://github.com/Adar5/ContractzyLite-Backend.git
+cd ContractzyLite-Backend
+npm install
+```
+
+Create a .env file in the backend root based on the provided .env.example:
+```bash
+# Server
+PORT=3000
+
+# Database
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=contractzy
+
+# Security & APIs
+JWT_SECRET=your_jwt_secret
+GROQ_API_KEY=gsk_your_groq_api_key
+
+# Oracle Cloud Infrastructure (OCI)
+OCI_NAMESPACE=your_oci_namespace
+OCI_BUCKET_NAME=your_oci_bucket
+```
+
+Start the local development server:
+```bash
+node server.js
+```
+
+### 3. Frontend Setup
+Clone the frontend repository and install dependencies:
+```bash
+git clone https://github.com/Adar5/ContractzyLite-Frontend.git
+cd ContractzyLite-Frontend
+npm install
+```
+Start the Angular development server:
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Navigate to http://localhost:4200 to view the application.
 
-## Code scaffolding
+## 💡 AI Micro-Targeting Workflow
+ContractzyLite optimizes AI token usage and latency through a targeted selection workflow. Rather than processing 20-page documents in bulk, the Angular frontend intercepts user mouse selections (selectionStart/selectionEnd) and isolates specific clauses. This micro-payload is routed to Groq's LPUs, bypassing standard reasoning loops and returning formatted JSON remediations in milliseconds.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
