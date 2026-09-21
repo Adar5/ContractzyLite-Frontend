@@ -1,0 +1,360 @@
+<div class="min-h-screen bg-slate-50 flex flex-col font-sans relative">
+  <!-- Enterprise Navbar -->
+  <nav
+    class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm z-20"
+  >
+    <div class="flex items-center gap-4 w-1/3">
+      <button
+        (click)="goBack()"
+        class="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          ></path>
+        </svg>
+        Back
+      </button>
+      <div class="h-6 w-px bg-slate-200"></div>
+
+      <!-- Custom File Naming Input -->
+      <div class="flex flex-col">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+          >File Name</label
+        >
+        <input
+          type="text"
+          [(ngModel)]="customFileName"
+          [disabled]="isSigned"
+          class="text-sm font-semibold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none w-64 transition-colors truncate pb-0.5"
+          placeholder="Enter document name..."
+        />
+      </div>
+    </div>
+
+    <!-- Version Control -->
+    <div class="flex items-center justify-center w-1/3">
+      <div
+        class="relative flex items-center bg-slate-100 border border-slate-200 rounded-md hover:bg-slate-200 transition-colors"
+      >
+        <select
+          (change)="onVersionSelect($event)"
+          class="appearance-none pl-4 pr-10 py-1.5 bg-transparent text-slate-700 text-xs font-mono outline-none cursor-pointer z-10 w-full"
+        >
+          <option value="current">Active: {{ currentVersion }}</option>
+          <optgroup *ngIf="versions && versions.length > 0" label="OCI Vault Archives">
+            <option *ngFor="let v of versions" [value]="v.oci_file_name">
+              {{ v.oci_file_name }}
+            </option>
+          </optgroup>
+        </select>
+        <svg
+          class="w-4 h-4 text-slate-500 absolute right-3 pointer-events-none z-20"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          ></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="flex items-center justify-end w-1/3">
+      <span
+        class="px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[11px] font-bold uppercase tracking-widest shadow-sm"
+        [ngClass]="{ 'bg-emerald-50 text-emerald-700 border-emerald-200': isSigned }"
+      >
+        {{ contract?.status }}
+      </span>
+    </div>
+  </nav>
+
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Professional Document Workspace -->
+    <div class="flex-1 overflow-y-auto p-8 lg:p-12 flex justify-center bg-slate-100/50">
+      <div
+        class="bg-white w-full max-w-4xl shadow-md border border-slate-200 rounded-sm min-h-[900px] p-12 lg:p-20 text-slate-800 font-serif leading-loose relative flex flex-col"
+      >
+        <!-- Empty State -->
+        <div
+          *ngIf="!isAutoFilled"
+          class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-white/80 backdrop-blur-sm z-10"
+        >
+          <svg
+            class="w-12 h-12 mb-4 text-slate-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          <p class="text-sm font-medium text-slate-500 tracking-wide">DOCUMENT NOT INITIALIZED</p>
+        </div>
+
+        <!-- Document Content -->
+        <div *ngIf="isAutoFilled" class="flex-1 flex flex-col animate-fade-in">
+          <h2
+            class="text-2xl font-bold mb-10 text-center uppercase tracking-widest text-slate-900 border-b border-slate-200 pb-6"
+          >
+            {{ contract?.title }}
+          </h2>
+
+          <textarea
+            #docEditor
+            [(ngModel)]="documentContent"
+            [disabled]="isSigned"
+            placeholder="Type or paste agreement clauses here..."
+            class="flex-1 w-full resize-none outline-none text-[15px] bg-transparent border-none focus:ring-0 p-0 disabled:text-slate-900 text-justify"
+            style="min-height: 400px; line-height: 1.9"
+          ></textarea>
+
+          <!-- Enterprise Digital Signature Block -->
+          <div class="mt-24 border-t border-slate-200 pt-12 flex justify-between">
+            <div class="w-5/12">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                ContractzyLite Authorized
+              </p>
+
+              <!-- Cryptographic Stamp instead of cursive -->
+              <div *ngIf="isSigned" class="border-2 border-slate-800 p-4 bg-slate-50 rounded-sm">
+                <p class="text-[10px] text-slate-500 uppercase font-sans font-bold mb-1">
+                  Digitally Signed By
+                </p>
+                <p class="font-mono text-sm font-bold text-slate-900 truncate">
+                  {{ signatureText }}
+                </p>
+                <p class="font-mono text-[9px] text-slate-400 mt-2">
+                  ID: {{ contractId }}-{{ currentTimestamp }}
+                </p>
+              </div>
+              <div
+                *ngIf="!isSigned"
+                class="h-24 border-2 border-dashed border-slate-200 rounded-sm flex items-center justify-center bg-slate-50"
+              >
+                <span class="text-xs text-slate-400 font-sans uppercase tracking-widest"
+                  >Pending Signature</span
+                >
+              </div>
+            </div>
+
+            <div class="w-5/12">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                {{ contract?.client_name }} Authorized
+              </p>
+              <div
+                class="h-24 border-2 border-dashed border-slate-200 rounded-sm flex items-center justify-center bg-slate-50"
+              >
+                <span class="text-xs text-slate-400 font-sans uppercase tracking-widest"
+                  >Awaiting Client</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Operations Sidebar -->
+    <div class="w-80 bg-white border-l border-slate-200 flex flex-col shadow-xl z-10">
+      <div class="p-6 border-b border-slate-100">
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+          Operations Console
+        </h3>
+      </div>
+
+      <div class="p-6 flex flex-col gap-4 overflow-y-auto">
+        <button
+          (click)="autoFillTemplate()"
+          [disabled]="isAutoFilled"
+          class="w-full py-3 px-4 bg-slate-50 text-slate-700 font-medium rounded border border-slate-200 hover:bg-slate-100 hover:border-slate-300 disabled:opacity-40 disabled:hidden flex items-center gap-3 transition-all text-sm"
+        >
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            ></path>
+          </svg>
+          Initialize Template
+        </button>
+
+        <!-- AI Review -->
+
+        <div *ngIf="isAutoFilled" class="pt-2">
+          <!-- Button is now ONLY disabled when actively scanning, allowing multiple runs -->
+          <button
+            (click)="runAiReview()"
+            [disabled]="aiIsScanning"
+            class="w-full py-3 px-4 bg-indigo-50 text-indigo-700 font-medium rounded border border-indigo-100 hover:bg-indigo-100 disabled:opacity-50 flex items-center justify-between transition-all text-sm mb-4"
+          >
+            <div class="flex items-center gap-2">
+              <svg
+                *ngIf="aiIsScanning"
+                class="animate-spin w-4 h-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <svg
+                *ngIf="!aiIsScanning"
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                ></path>
+              </svg>
+              <span>{{ aiIsScanning ? 'Reviewing...' : 'Run Risk Analysis' }}</span>
+            </div>
+
+            <span
+              class="text-[10px] text-indigo-500 font-mono uppercase bg-indigo-100/60 px-1.5 py-0.5 rounded"
+              >Selection/Full</span
+            >
+          </button>
+
+          <!-- AI Finding Panel -->
+          <div
+            *ngIf="showAiReview && aiRiskFound"
+            class="bg-red-50 border border-red-100 rounded p-4"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-red-600">
+                Risk Identified
+              </p>
+              <span
+                *ngIf="analyzedSelectionOnly"
+                class="text-[9px] bg-red-100 text-red-700 px-1 rounded font-medium"
+                >Selected Snippet</span
+              >
+            </div>
+
+            <p class="text-xs text-red-800 mb-3 leading-relaxed">{{ aiRiskExplanation }}</p>
+
+            <div
+              class="bg-white/80 p-2.5 rounded border border-red-200 mb-3 text-[11px] font-mono text-red-900 leading-snug"
+            >
+              <span class="text-[9px] block text-red-400 font-bold uppercase mb-1"
+                >Target Clause:</span
+              >
+              "{{ aiRiskyClause }}"
+            </div>
+
+            <button
+              (click)="fixAiRisk()"
+              class="w-full py-2 bg-white text-red-600 border border-red-200 hover:bg-red-50 text-xs font-bold rounded transition-colors shadow-sm"
+            >
+              Apply Remediation
+            </button>
+          </div>
+
+          <div
+            *ngIf="showAiReview && !aiRiskFound"
+            class="bg-emerald-50 border border-emerald-100 rounded p-4"
+          >
+            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">
+              Clause Approved
+            </p>
+            <p class="text-xs text-emerald-800">
+              No severe liability detected in analyzed segment.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- Execution Button -->
+      <div class="p-6 mt-auto border-t border-slate-100 bg-slate-50">
+        <button
+          (click)="openSignModal()"
+          [disabled]="!isAutoFilled || isSigned || aiRiskFound"
+          class="w-full py-3.5 px-4 bg-slate-900 text-white font-medium rounded hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-sm shadow-md"
+        >
+          {{ isSigned ? 'Document Executed' : 'Authorize & Vault' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Authorization Modal -->
+  <div
+    *ngIf="showSignModal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in"
+  >
+    <div
+      class="bg-white rounded shadow-2xl w-full max-w-md overflow-hidden border border-slate-200"
+    >
+      <div
+        class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center"
+      >
+        <div>
+          <h3 class="font-bold text-slate-900">Execute Document</h3>
+          <p class="text-xs text-slate-500 mt-1">
+            This action generates an immutable OCI artifact.
+          </p>
+        </div>
+        <button (click)="closeSignModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
+          >Authorization Signature</label
+        >
+        <input
+          type="text"
+          [(ngModel)]="signatureText"
+          placeholder="Enter your full legal name"
+          class="w-full px-4 py-3 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 mb-6 font-mono text-sm"
+        />
+
+        <button
+          (click)="confirmSignature()"
+          [disabled]="!signatureText"
+          class="w-full py-3.5 bg-indigo-600 text-white font-medium rounded hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm shadow-sm"
+        >
+          Confirm & Cryptographically Sign
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
